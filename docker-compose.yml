@@ -1,0 +1,142 @@
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2017-latest
+    ports:
+      - "1440:1433"
+    environment:
+      ACCEPT_EULA: Y
+      SA_PASSWORD: Yukon900
+      
+  deploydb:
+    build: 
+      context: .
+      dockerfile: src/CleanArchitecture.Database/Dockerfile
+    environment:
+      TARGET_PASSWORD: Yukon900
+      TARGET_USER: sa
+      TARGET_SERVER_NAME: mssql
+    depends_on:
+      - mssql
+
+  loki:
+    image: grafana/loki:2.8.0
+    # ports:
+    #   - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+
+  tempo:
+    image: grafana/tempo:latest
+    configs:
+      - source: tempo-config
+        target: /etc/tempo.yaml
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    # ports:
+    #   - "3200:3200"   # tempo
+
+  prometheus:
+    image: prom/prometheus:latest
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-remote-write-receiver'
+    # ports:
+    #   - 9090:9090
+
+  grafana:
+    environment:
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        mkdir -p /etc/grafana/provisioning/datasources
+        cat <<EOF > /etc/grafana/provisioning/datasources/ds.yaml
+        apiVersion: 1
+        datasources:
+        - name: Loki
+          type: loki
+          access: proxy 
+          orgId: 1
+          url: http://loki:3100
+          basicAuth: false
+          isDefault: false
+          version: 1
+          editable: false
+        - name: Prometheus
+          type: prometheus
+          access: proxy 
+          orgId: 1
+          url: http://prometheus:9090
+          basicAuth: false
+          isDefault: false
+          version: 1
+          editable: false
+          jsonData:
+            httpMethod: GET
+        - name: Tempo
+          type: tempo
+          access: proxy
+          orgId: 1
+          url: http://tempo:3200
+          basicAuth: false
+          isDefault: true
+          version: 1
+          editable: false
+          apiVersion: 1
+          uid: tempo
+          jsonData:
+            httpMethod: GET
+            serviceMap:
+              datasourceUid: prometheus
+        EOF
+        /run.sh
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+
+  collector:
+    depends_on:
+      - loki
+      - prometheus
+      - tempo
+    image: otel/opentelemetry-collector-contrib
+    command: [--config=/etc/otel/config.yaml]
+    configs:
+      - source: otel-config
+        target: /etc/otel/config.yaml
+    ports:
+      # - 13133:13133 # health_check extension
+      # - 8888:8888 # collector metrics extension 
+      # - 4317:4317 # grpc
+      - 4318:4318 # http
+      # - 8889:8889 # prometheus exporter
+
+  # integration:
+  #   build: 
+  #     context: .
+  #     dockerfile: tests/Template.IntegrationTests/Dockerfile
+  #   environment:
+  #     ASPNETCORE_ENVIRONMENT: Docker
+  #   depends_on:
+  #     - deploydb
+
+  api:
+    build: 
+      context: .
+      dockerfile: src/CleanArchitecture.Api/Dockerfile
+    ports:
+      - "5040:80"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      OTEL_SEMCONV_STABILITY_OPT_IN: http
+    depends_on:
+      - deploydb
+
+configs:
+  otel-config:
+    file: otel-config.yaml
+  tempo-config:
+    file: tempo.yaml

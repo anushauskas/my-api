@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build">
+  <Sdk Name="Microsoft.Build.Sql" Version="1.0.0" />
+  <PropertyGroup>
+    <Name>CleanArchitecture.Database</Name>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql120DatabaseSchemaProvider</DSP>
+    <ModelCollation>1033, CI</ModelCollation>
+    <TargetDatabaseSet>True</TargetDatabaseSet>
+    <ProjectGuid>{686f0163-e9e0-44b8-b369-9840e68e0837}</ProjectGuid>
+    <DefaultFileStructure>BySchemaAndSchemaType</DefaultFileStructure>
+    <EnableDefaultSqlItems>False</EnableDefaultSqlItems>
+  </PropertyGroup>
+  <Target Name="BeforeBuild">
+    <Delete Files="$(BaseIntermediateOutputPath)\project.assets.json" />
+  </Target>
+  <ItemGroup>
+    <Folder Include="dbo\" />
+    <Folder Include="dbo\Tables\" />
+    <Folder Include="_publish" />
+  </ItemGroup>
+  <ItemGroup>
+    <Build Include="dbo\Tables\TodoLists.sql" />
+    <Build Include="dbo\Tables\TodoItems.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_publish\CleanArchitecture.Local.publish.xml" />
+    <None Include="_publish\CleanArchitecture.Test.publish.xml" />
+  </ItemGroup>
+</Project>

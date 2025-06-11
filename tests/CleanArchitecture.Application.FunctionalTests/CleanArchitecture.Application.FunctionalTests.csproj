@@ -7,10 +7,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <None Remove="appsettings.json" />
-    </ItemGroup>
-
-    <ItemGroup>
       <Content Include="appsettings.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
@@ -38,7 +34,8 @@
     </ItemGroup>
     
     <ItemGroup>
-        <ProjectReference Include="..\..\src\CleanArchitecture.Api\CleanArchitecture.Api.csproj" />
+      <ProjectReference Include="..\..\src\CleanArchitecture.Application\CleanArchitecture.Application.csproj" />
+      <ProjectReference Include="..\..\src\CleanArchitecture.Infrastructure\CleanArchitecture.Infrastructure.csproj" />
     </ItemGroup>
 
 </Project>

@@ -5,35 +5,25 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Respawn;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace CleanArchitecture.Application.FunctionalTests;
 
 public class SqlTestDatabase : ITestDatabase
 {
-    private readonly string _connectionString = null!;
     private SqlConnection _connection = null!;
     private Respawner _respawner = null!;
 
-    public SqlTestDatabase()
+    public async Task InitialiseAsync(IConfiguration configuration)
     {
-        var configuration = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.json")
-            .AddEnvironmentVariables()
-            .Build();
-
-        var connectionString = configuration.GetConnectionString("CleanArchitectureDb");
-
+        var connectionString = configuration.GetConnectionString("DefaultConnection")!;
         Guard.Against.Null(connectionString);
 
-        _connectionString = connectionString;
-    }
-
-    public async Task InitialiseAsync()
-    {
-        _connection = new SqlConnection(_connectionString);
+        _connection = new SqlConnection(connectionString);
+        await _connection.OpenAsync();
 
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseSqlServer(_connectionString)
+            .UseSqlServer(connectionString)
             .ConfigureWarnings(warnings => warnings.Log(RelationalEventId.PendingModelChangesWarning))
             .Options;
 
@@ -42,7 +32,7 @@ public class SqlTestDatabase : ITestDatabase
         context.Database.EnsureDeleted();
         context.Database.Migrate();
 
-        _respawner = await Respawner.CreateAsync(_connectionString, new RespawnerOptions
+        _respawner = await Respawner.CreateAsync(connectionString, new RespawnerOptions
         {
             TablesToIgnore = ["__EFMigrationsHistory"]
         });
@@ -53,17 +43,12 @@ public class SqlTestDatabase : ITestDatabase
         return _connection;
     }
 
-    public string GetConnectionString()
-    {
-        return _connectionString;
-    }
-
     public async Task ResetAsync()
     {
-        await _respawner.ResetAsync(_connectionString);
+        await _respawner.ResetAsync(_connection);
     }
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         await _connection.DisposeAsync();
     }

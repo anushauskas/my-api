@@ -11,7 +11,7 @@ namespace CleanArchitecture.Application.FunctionalTests;
 public partial class Testing
 {
     private static ITestDatabase _database = null!;
-    private static CustomWebApplicationFactory _factory = null!;
+    private static Microsoft.Extensions.Hosting.IHost _host;
     private static IServiceScopeFactory _scopeFactory = null!;
     private static string? _userId;
     private static string? _userName;
@@ -20,11 +20,31 @@ public partial class Testing
     [OneTimeSetUp]
     public async Task RunBeforeAnyTests()
     {
-        _database = await TestDatabaseFactory.CreateAsync();
+        var identyService = new Mock<IIdentityService>();
+        identyService
+            .Setup(x => x.IsInRoleAsync(It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync((string user, string role) => GetUserRoles().Any(r => r.Equals(role)));
 
-        _factory = new CustomWebApplicationFactory(_database.GetConnection(), _database.GetConnectionString());
+        identyService
+            .Setup(x => x.AuthorizeAsync(It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync((string userId, string policyName) =>
+                GetUserRoles().Any(r => r.Equals(Roles.Administrator))
+                && policyName.Equals(Policies.CanPurge)
+            );
 
-        _scopeFactory = _factory.Services.GetRequiredService<IServiceScopeFactory>();
+        var user = new Mock<IUser>();
+        user.Setup(u => u.Id).Returns(GetUserId);
+
+        var hostBuilder = TestApplicationBuilderExtensions
+            .CreateApplicationBuilder()
+            .WithCustomScoped(identyService.Object)
+            .WithCustomScoped(user.Object);
+
+        _host = hostBuilder.Build();
+
+        _scopeFactory = _host.Services.GetRequiredService<IServiceScopeFactory>();
+
+        _database = await TestDatabaseFactory.CreateAsync(hostBuilder.Configuration);
     }
 
     public static async Task<TResponse> SendAsync<TRequest, TResponse>(TRequest request) where TRequest : notnull
@@ -133,7 +153,7 @@ public partial class Testing
     [OneTimeTearDown]
     public async Task RunAfterAnyTests()
     {
+        _host.Dispose();
         await _database.DisposeAsync();
-        await _factory.DisposeAsync();
     }
 }

@@ -1,8 +1,6 @@
 ﻿using System.Diagnostics.Metrics;
 using System.Reflection;
-using System.Security.Claims;
 using CleanArchitecture.Application.Common.Interfaces;
-using CleanArchitecture.Domain.Constants;
 using CleanArchitecture.Infrastructure.Clients;
 using CleanArchitecture.Infrastructure.Configuration;
 using CleanArchitecture.Infrastructure.Configuration.Options;
@@ -12,14 +10,12 @@ using CleanArchitecture.Infrastructure.HttpHandlers;
 using CleanArchitecture.Infrastructure.Telemetry;
 using Duende.AccessTokenManagement;
 using Duende.IdentityModel.Client;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 using OpenTelemetry;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Logs;
@@ -37,10 +33,6 @@ public static class DependencyInjection
         services.AddDatabase(configuration);
 
         services.AddSingleton<CleanArchitecture.Infrastructure.TimeProvider>();
-
-        services.AddAuthentication(configuration);
-
-        services.AddAuthorization();
 
         services.AddTelemetry(configuration);
 
@@ -70,75 +62,6 @@ public static class DependencyInjection
         services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
 
         services.AddScoped<ApplicationDbContextInitialiser>();
-    }
-
-    private static IServiceCollection AddAuthentication(this IServiceCollection services, IConfiguration configuration)
-    {
-        var tokenSettings = configuration.GetSection("TokenManagement").Get<TokenManagementOptions>()!;
-        services
-            .AddAuthentication(o =>
-            {
-                o.DefaultAuthenticateScheme = "DynamicScheme";
-                o.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            // Accept tests: 
-            .AddJwtBearer("Testing", o =>
-            {
-                o.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Convert.FromBase64String(tokenSettings.SymmetricKey)),
-                    ValidIssuer = tokenSettings.Issuer,
-                    ValidAudience = tokenSettings.Audience,
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ClockSkew = TimeSpan.FromSeconds(5),
-                    NameClaimType = ClaimTypes.NameIdentifier,
-                    RoleClaimType = "scopes"
-                };
-            })
-            .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, o =>
-            {
-                o.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = tokenSettings.Issuer,
-                    ValidAudience = tokenSettings.Audience,
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ClockSkew = TimeSpan.FromSeconds(5),
-                    // our internal athentification service specifics: 
-                    NameClaimType = ClaimTypes.NameIdentifier,
-                    // Need to check what defines user permissions in Okta, but for now we use scopes:
-                    RoleClaimType = "http://schemas.microsoft.com/identity/claims/scope"
-                };
-                o.Authority = tokenSettings.Authority;
-                o.RequireHttpsMetadata = true;
-            })
-            .AddPolicyScheme("DynamicScheme", "OAuth2 Token Client", options =>
-            {
-                options.ForwardDefaultSelector = context =>
-                {
-                    // If the request has an Authorization header, use the Testing scheme
-                    if (context.Request.Headers.Authorization.Any(x => !string.IsNullOrWhiteSpace(x))
-                        && context.Request.Headers.Authorization.First()!.StartsWith("Testing"))
-                    {
-                        context.Request.Headers.Authorization = context.Request.Headers.Authorization.First()!.Replace("Testing", "Bearer").Trim();
-                        return "Testing";
-                    }
-                    // Otherwise, use the default JwtBearer scheme
-                    return JwtBearerDefaults.AuthenticationScheme;
-                };
-            })
-            ; ;
-
-        return services;
-    }
-
-    private static IServiceCollection AddAuthorization(this IServiceCollection services)
-    {
-        return services
-            .AddAuthorization(o => o.AddPolicy(Policies.CanPurge, policy => policy.RequireRole(Roles.Administrator)));
     }
 
     public static IServiceCollection AddTelemetry(this IServiceCollection services, IConfiguration configuration)

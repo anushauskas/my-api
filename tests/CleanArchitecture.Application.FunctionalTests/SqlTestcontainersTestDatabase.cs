@@ -3,6 +3,7 @@ using CleanArchitecture.Infrastructure.Data;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Configuration;
 using Respawn;
 using Testcontainers.MsSql;
 
@@ -23,7 +24,7 @@ public class SqlTestcontainersTestDatabase : ITestDatabase
             .Build();
     }
 
-    public async Task InitialiseAsync()
+    public async Task InitialiseAsync(IConfiguration configuration)
     {
         await _container.StartAsync();
         await _container.ExecScriptAsync($"CREATE DATABASE {DefaultDatabase}");
@@ -36,6 +37,7 @@ public class SqlTestcontainersTestDatabase : ITestDatabase
         _connectionString = builder.ConnectionString;
 
         _connection = new SqlConnection(_connectionString);
+        await _connection.OpenAsync();
 
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseSqlServer(_connectionString)
@@ -57,17 +59,12 @@ public class SqlTestcontainersTestDatabase : ITestDatabase
         return _connection;
     }
 
-    public string GetConnectionString()
-    {
-        return _connectionString;
-    }
-
     public async Task ResetAsync()
     {
-        await _respawner.ResetAsync(_connectionString);
+        await _respawner.ResetAsync(_connection);
     }
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         await _connection.DisposeAsync();
         await _container.DisposeAsync();

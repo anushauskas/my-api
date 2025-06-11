@@ -1,16 +1,13 @@
 ﻿using System.Data.Common;
+using Microsoft.Extensions.Configuration;
 
 namespace CleanArchitecture.Application.FunctionalTests;
 
-public interface ITestDatabase
+public interface ITestDatabase : IAsyncDisposable
 {
-    Task InitialiseAsync();
+    Task InitialiseAsync(IConfiguration configuration);
 
     DbConnection GetConnection();
 
-    string GetConnectionString();
-
     Task ResetAsync();
-
-    Task DisposeAsync();
 }

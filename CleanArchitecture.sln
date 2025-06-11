@@ -39,6 +39,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Databases", "Databases", "{
 EndProject
 Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "CleanArchitecture.Database", "src\CleanArchitecture.Database\CleanArchitecture.Database.sqlproj", "{686F0163-E9E0-44B8-B369-9840E68E0837}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CleanArchitecture.Service", "src\CleanArchitecture.Service\CleanArchitecture.Service.csproj", "{7B3FB801-01FD-4FD9-978F-28D2FB444CCF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -83,6 +85,10 @@ Global
 		{686F0163-E9E0-44B8-B369-9840E68E0837}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{686F0163-E9E0-44B8-B369-9840E68E0837}.Release|Any CPU.Build.0 = Release|Any CPU
 		{686F0163-E9E0-44B8-B369-9840E68E0837}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{7B3FB801-01FD-4FD9-978F-28D2FB444CCF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B3FB801-01FD-4FD9-978F-28D2FB444CCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B3FB801-01FD-4FD9-978F-28D2FB444CCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B3FB801-01FD-4FD9-978F-28D2FB444CCF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -97,6 +103,7 @@ Global
 		{EA6127A5-94C9-4C31-AD11-E6811B92B520} = {664D406C-2F83-48F0-BFC3-408D5CB53C65}
 		{01FA6786-921D-4CE8-8C50-4FDA66C9477D} = {664D406C-2F83-48F0-BFC3-408D5CB53C65}
 		{686F0163-E9E0-44B8-B369-9840E68E0837} = {35E731C7-BA86-4FFE-9016-BD0C02E526EC}
+		{7B3FB801-01FD-4FD9-978F-28D2FB444CCF} = {487D84A2-3A09-40B1-8B8D-457FBCEEE08C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3CB609D9-5D54-4C11-A371-DAAC8B74E430}

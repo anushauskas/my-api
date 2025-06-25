@@ -1,0 +1,279 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "DDS",
+  "classifications": [
+    "API",
+    "ASP.NET",
+    "Clean Architecture"],
+  "name": "DDS dotnet API Solution",
+  "description": "DDS dotnet Solution Template for creating an API with ASP.NET Core.",
+  "identity": "DDS.API.Solution.CSharp",
+  "groupIdentity": "DDS.API.Solution",
+  "shortName": "dds-api-sln",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "sourceName": "CleanArchitecture",
+  "preferNameDirectory": true,
+  "symbols": {
+    "caPackageVersion": {
+      "type": "generated",
+      "generator": "constant",
+      "replaces": "caPackageVersion",
+      "parameters": {
+        "value": "1.0.0"
+      }
+    },
+    "caRepositoryUrl": {
+      "type": "generated",
+      "generator": "constant",
+      "replaces": "caRepositoryUrl",
+      "parameters": {
+        "value": "https://github.com/anushauskas/my-api"
+      }
+    },
+    "ClientFramework": {
+      "type": "parameter",
+      "datatype": "choice",
+      "choices": [
+        {
+          "choice": "Angular",
+          "description": "Use Angular"
+        },
+        {
+          "choice": "React",
+          "description": "Use React"
+        },
+        {
+          "choice": "None",
+          "description": "Web API only"
+        }
+      ],
+      "defaultValue": "None",
+      "description": "The type of client framework to use"
+    },
+    "UseAngular": {
+      "type": "computed",
+      "value": "(ClientFramework == \"Angular\")"
+    },
+    "UseReact": {
+      "type": "computed",
+      "value": "(ClientFramework == \"React\")"
+    },
+    "UseApiOnly": {
+      "type": "computed",
+      "value": "(ClientFramework == \"None\")"
+    },
+    "UseAspire": {
+      "type": "parameter",
+      "datatype": "bool",
+      "defaultValue": "false",
+      "description": "Use .NET Aspire"
+    },
+    "Database": {
+      "type": "parameter",
+      "datatype": "choice",
+      "choices": [
+        {
+          "choice": "postgresql",
+          "description": "PostgreSQL"
+        },
+        {
+          "choice": "sqlite",
+          "description": "SQLite"
+        },
+        {
+          "choice": "sqlserver",
+          "description": "SQL Server"
+        }
+      ],
+      "defaultValue": "sqlserver",
+      "description": "The database type to use."
+    },
+    "PipelineProvider": {
+      "type": "parameter",
+      "datatype": "choice",
+      "choices": [
+        {
+          "choice": "azdo",
+          "description": "Azure Pipelines"
+        },
+        {
+          "choice": "github",
+          "description": "GitHub Actions"
+        }
+      ],
+      "defaultValue": "none",
+      "description": "The pipeline provider to use (github for Github Actions and azdo for Azure Pipelines)."
+    },
+    "UseAzurePipelines": {
+      "type": "computed",
+      "value": "(PipelineProvider == \"azdo\")"
+    },
+    "UseGithubActions": {
+      "type": "computed",
+      "value": "(PipelineProvider == \"github\")"
+    },
+    "UsePostgreSQL": {
+      "type": "computed",
+      "value": "(Database == \"postgresql\")"
+    },
+    "UseSqlite": {
+      "type": "computed",
+      "value": "(Database == \"sqlite\")"
+    },
+    "UseSqlServer": {
+      "type": "computed",
+      "value": "(Database == \"sqlserver\")"
+    }
+  },
+  "sources": [
+    {
+      "source": "./",
+      "target": "./",
+      "exclude": [
+        ".git/**/*",
+        "infra/**/*",
+        ".devcontainer/**/*",
+        ".template.config/**/*",
+        "templates/**/*",
+        "**/*.filelist",
+        "**/*.user",
+        "**/*.lock.json",
+        "*.nuspec",
+        "src/CleanArchitecture.Infrastructure/Data/Migrations/**",
+        "src/CleanArchitecture.Infrastructure/Data/SQLite/**",
+        "src/CleanArchitecture.Infrastructure/Data/PostgreSQL/**",
+        "src/CleanArchitecture.Api/appsettings.Development.json",
+        "src/CleanArchitecture.Api/appsettings.PostgreSQL.json",
+        "src/CleanArchitecture.Api/appsettings.SQLite.json",
+        "src/CleanArchitecture.Api/wwwroot/**",
+        "tests/CleanArchitecture.Application.FunctionalTests/PostgreSQLTestcontainersTestDatabase.cs",
+        "tests/CleanArchitecture.Application.FunctionalTests/PostgreSQLTestDatabase.cs",
+        "tests/CleanArchitecture.Application.FunctionalTests/SqliteTestDatabase.cs",
+        "tests/CleanArchitecture.Application.FunctionalTests/SqlTestcontainersTestDatabase.cs",
+        "tests/CleanArchitecture.Application.FunctionalTests/SqlTestDatabase.cs",
+        "tests/CleanArchitecture.Application.FunctionalTests/appsettings.json",
+        "tests/CleanArchitecture.Application.FunctionalTests/appsettings.PostgreSQL.json",
+        ".azdo/**/*",
+        ".github/**/*",
+        "README.md",
+        "azure.yaml",
+        "build.cake",
+        "app.db",
+        "*.nswag"
+      ],
+      "rename": {
+        "README-template.md": "README.md"
+      },
+      "modifiers": [
+        {
+          "condition": "(UseAngular)",
+          "exclude": [
+            "src/CleanArchitecture.Api/ClientApp-React/**",
+            "src/CleanArchitecture.Api/Endpoints/Users.cs",
+            "src/CleanArchitecture.Api/Templates/**",
+            "src/CleanArchitecture.Api/config-react.nswag",
+            "src/CleanArchitecture.Api/config-webapi.nswag",
+            "src/CleanArchitecture.Api/Web-webapi.http",
+            "src/CleanArchitecture.Api/wwwroot/api/specification-webapi.json"
+          ]
+        },
+        {
+          "condition": "(UseReact)",
+          "exclude": [
+            "src/CleanArchitecture.Api/ClientApp/**",
+            "src/CleanArchitecture.Api/Endpoints/Users.cs",
+            "src/CleanArchitecture.Api/config.nswag",
+            "src/CleanArchitecture.Api/config-webapi.nswag",
+            "src/CleanArchitecture.Api/Web-webapi.http",
+            "src/CleanArchitecture.Api/wwwroot/api/specification-webapi.json"
+          ],
+          "rename": {
+            "config-react.nswag": "config.nswag",
+            "ClientApp-React": "ClientApp"
+          }
+        },
+        {
+          "condition": "(UseApiOnly)",
+          "exclude": [
+            "src/CleanArchitecture.Api/ClientApp/**",
+            "src/CleanArchitecture.Api/ClientApp-React/**",
+            "src/CleanArchitecture.Api/Pages/**",
+            "src/CleanArchitecture.Api/Templates/**",
+            "src/CleanArchitecture.Api/config.nswag",
+            "src/CleanArchitecture.Api/config-react.nswag",
+            "src/CleanArchitecture.Api/Web.http",
+            "tests/CleanArchitecture.Api.AcceptanceTests/**",
+            "src/CleanArchitecture.Api/wwwroot/api/specification.json"
+          ],
+          "rename": {
+            "config-webapi.nswag": "config.nswag",
+            "Web-webapi.http": "Web.http",
+            "specification-webapi.json": "specification.json"
+          }
+        },
+        {
+          "condition": "(UseAzurePipelines)",
+          "include": [
+            ".azdo/**/*"
+          ]
+        },
+        {
+          "condition": "(UseGithubActions)",
+          "include": [
+            ".github/**/*"
+          ]
+        },
+        {
+          "condition": "(UsePostgreSQL)",
+          "include": [
+            "src/CleanArchitecture.Infrastructure/Data/PostgreSQL/**",
+            "src/CleanArchitecture.Api/appsettings.PostgreSQL.json",
+            "tests/CleanArchitecture.Application.FunctionalTests/PostgreSQLTestcontainersTestDatabase.cs",
+            "tests/CleanArchitecture.Application.FunctionalTests/PostgreSQLTestDatabase.cs",
+            "tests/CleanArchitecture.Application.FunctionalTests/appsettings.PostgreSQL.json"
+          ],
+          "rename": {
+            "src/CleanArchitecture.Infrastructure/Data/PostgreSQL/" : "src/CleanArchitecture.Infrastructure/Data/Migrations/",
+            "src/CleanArchitecture.Api/appsettings.PostgreSQL.json": "src/CleanArchitecture.Api/appsettings.Development.json",
+            "tests/CleanArchitecture.Application.FunctionalTests/appsettings.PostgreSQL.json": "tests/CleanArchitecture.Application.FunctionalTests/appsettings.json"
+          }
+        },
+        {
+          "condition": "(UseSqlServer)",
+          "include": [
+            "src/CleanArchitecture.Infrastructure/Data/Migrations/**",
+            "src/CleanArchitecture.Api/appsettings.Development.json",
+            "tests/CleanArchitecture.Application.FunctionalTests/SqlTestcontainersTestDatabase.cs",
+            "tests/CleanArchitecture.Application.FunctionalTests/SqlTestDatabase.cs",
+            "tests/CleanArchitecture.Application.FunctionalTests/appsettings.json"
+          ]
+        },
+        {
+          "condition": "(UseSqlite)",
+          "include": [
+            "src/CleanArchitecture.Infrastructure/Data/SQLite/**",
+            "src/CleanArchitecture.Api/appsettings.SQLite.json",
+            "tests/CleanArchitecture.Application.FunctionalTests/SqliteTestDatabase.cs"
+          ],
+          "exclude": [
+            "tests/CleanArchitecture.Application.FunctionalTests/appsettings.json"
+          ],
+          "rename": {
+            "src/CleanArchitecture.Infrastructure/Data/SQLite/" : "src/CleanArchitecture.Infrastructure/Data/Migrations/",
+            "src/CleanArchitecture.Api/appsettings.SQLite.json": "src/CleanArchitecture.Api/appsettings.Development.json"
+          }
+        },
+        {
+          "condition": "(!UseAspire)",
+          "exclude": [
+            "src/CleanArchitecture.AppHost/**",
+            "src/CleanArchitecture.ServiceDefaults/**"
+          ]
+        }
+      ]
+    }
+  ]
+}
